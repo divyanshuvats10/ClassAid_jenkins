@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const User = require("./models/User"); // Import User model
 const Building = require("./models/Layout"); // Import Building model
-const Complaint = require("./models/Complaint")
+const Complaint = require("./models/Complaint");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -97,9 +97,28 @@ app.post("/login", async (req, res) => {
 });
 
 // Dashboard Route
-app.get("/dashboard", (req, res) => {
-  if (req.session.user) return res.json({ user: req.session.user });
-  res.status(401).json({ message: "Not logged in" });
+app.get("/dashboard", async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+
+  const user = req.session.user;
+
+  // For students, you could fetch only their complaints
+  try {
+    let complaints = [];
+
+    if (user.role === "admin" || user.role === "worker") {
+      complaints = await Complaint.find().sort({ dateLogged: -1 });
+    } else if (user.role === "student") {
+      complaints = await Complaint.find({ "loggedBy.registrationNumber": user.registrationNumber }).sort({ dateLogged: -1 });
+    }
+
+    res.json({ user, complaints });
+  } catch (err) {
+    console.error("Error fetching complaints:", err);
+    res.status(500).json({ message: "Failed to fetch complaints" });
+  }
 });
 
 // Logout Route
