@@ -386,14 +386,31 @@ app.delete("/building/:buildingId/floor/:floorId/room/:roomId/objects/:objectId"
 
 
 // List of Complaints
-app.get("/complaints/:objectId", async (req, res) => {
+app.get("/building/:buildingId/floor/:floorId/room/:roomId/objects/:objectId/complaints", async (req, res) => {
+  const { buildingId, floorId, roomId, objectId } = req.params;
+
   try {
-    const { objectId } = req.params;
-    const complaints = await Complaint.find({ objectId }).sort({ dateLogged: -1 });
-    res.json(complaints);
+    const complaints = await Complaint.find({ objectId });
+
+    // Also fetch metadata
+    const building = await Building.findById(buildingId);
+    const floor = building.floors.id(floorId);
+    const room = floor.rooms.id(roomId);
+    const object = room.objects.id(objectId);
+
+    res.json({
+      complaints,
+      meta: {
+        buildingName: building.buildingName,
+        floorNumber: floor.floorNumber,
+        roomName: room.roomName,
+        objectName: object.name,
+        objectType: object.type
+      }
+    });
   } catch (err) {
     console.error("Error fetching complaints:", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ error: "Server error while fetching complaints" });
   }
 });
 
