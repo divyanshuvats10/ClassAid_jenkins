@@ -54,7 +54,7 @@ const Home = () => {
       </nav>
 
       {/* Welcome Message */}
-      <h1>Welcome to the Complaint Management System</h1>
+      <h1 className="text-red-500">Welcome to the Complaint Management System</h1>
       {user && <h2>Hello, {user.name} ({user.role})</h2>}
     </div>
   );

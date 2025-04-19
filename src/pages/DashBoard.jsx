@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -40,19 +41,8 @@ const Dashboard = () => {
 
   return (
     <div>
-      <nav>
-        {user ? (
-          <>
-            <span>Welcome, {user.name} ({user.role})</span>
-            <button onClick={handleLogout}>Logout</button>
-          </>
-        ) : (
-          <>
-            <a href="/register">Register</a>
-            <a href="/login">Login</a>
-          </>
-        )}
-      </nav>
+      
+      <Navbar user={user} onLogout={handleLogout} />
 
       <h1>Dashboard</h1>
 

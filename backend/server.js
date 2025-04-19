@@ -111,7 +111,7 @@ app.get("/dashboard", async (req, res) => {
     if (user.role === "admin" || user.role === "worker") {
       complaints = await Complaint.find().sort({ dateLogged: -1 });
     } else if (user.role === "student") {
-      complaints = await Complaint.find({ "loggedBy.registrationNumber": user.registrationNumber }).sort({ dateLogged: -1 });
+      complaints = await Complaint.find({ "loggedBy.registrationNumber": user.registration_number }).sort({ dateLogged: -1 });
     }
 
     res.json({ user, complaints });
