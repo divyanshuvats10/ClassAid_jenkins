@@ -77,50 +77,46 @@ const RoomObjects = () => {
     }
   };
 
-  // Custom sorting logic
-  const sortObjects = (objList) => {
-    const order = { board: 1, projector: 2, ac: 3, fan: 4, table: 5, chair: 6 };
-    const sorted = [...objList].sort((a, b) => {
-      const typeOrder = order[a.type] - order[b.type];
-      return typeOrder !== 0 ? typeOrder : a.name.localeCompare(b.name);
-    });
-
-    // Pair table and chair by number
-    const pairs = [];
-    const others = sorted.filter(obj => !['table', 'chair'].includes(obj.type));
-    const tables = sorted.filter(obj => obj.type === 'table');
-    const chairs = sorted.filter(obj => obj.type === 'chair');
-
-    for (let i = 0; i < Math.max(tables.length, chairs.length); i++) {
-      if (tables[i]) pairs.push(tables[i]);
-      if (chairs[i]) pairs.push(chairs[i]);
-    }
-
-    return [...others, ...pairs];
+  const grouped = {
+    board: [],
+    projector: [],
+    ac: [],
+    fan: [],
+    table: [],
+    chair: [],
   };
 
-  const sortedObjects = sortObjects(objects);
+  objects.forEach((obj) => {
+    if (grouped[obj.type]) {
+      grouped[obj.type].push(obj);
+    }
+  });
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <Navbar user={user} setUser={setUser} />
+  // Pair tables with chairs (table above, chair below)
+  const tableChairPairs = [];
+  const maxLen = Math.max(grouped.table.length, grouped.chair.length);
+  for (let i = 0; i < maxLen; i++) {
+    tableChairPairs.push({
+      table: grouped.table[i] || null,
+      chair: grouped.chair[i] || null,
+    });
+  }
 
-      <div className="max-w-4xl mx-auto px-6 py-10">
-        <h1 className="text-3xl font-bold text-gray-800 mb-6">Room Objects</h1>
+  const renderGroup = (items, title, gridCols, isPair = false) => {
+    if (!items.length) return null;
 
-        {sortedObjects.length === 0 ? (
-          <p className="text-gray-600">No objects found in this room.</p>
-        ) : (
-          <ul className="space-y-4 mb-8">
-            {sortedObjects.map((obj) => (
-              <li
+    return (
+      <div className="mb-10">
+        <h3 className="text-xl font-semibold text-gray-700 mb-4">{title}</h3>
+        <div className={`grid ${gridCols} gap-2 place-items-center`}>
+          {!isPair &&
+            items.map((obj) => (
+              <div
                 key={obj._id}
-                className="bg-white p-4 rounded-lg shadow flex justify-between items-center"
+                className="bg-white p-4 rounded-lg shadow w-full max-w-xs text-center"
               >
-                <div className="flex gap-2 items-center">
-                  <span className="font-semibold uppercase text-purple-600">
-                    {obj.type}
-                  </span>
+                <div className="flex flex-col items-center space-y-1">
+                  <span className="text-purple-600 font-bold uppercase">{obj.type}</span>
                   <span
                     className="text-blue-600 underline cursor-pointer"
                     onClick={() =>
@@ -135,20 +131,96 @@ const RoomObjects = () => {
                 {user?.role === "admin" && (
                   <button
                     onClick={() => handleDeleteObject(obj._id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                    className="mt-3 bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
                   >
                     Delete
                   </button>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+
+          {isPair &&
+            items.map(({ table, chair }, index) => (
+              <div
+                key={index}
+                className="bg-white p-4 rounded-lg shadow w-full max-w-xs text-center"
+              >
+                {table && (
+                  <div className="mb-2">
+                    <div className="text-purple-600 font-bold uppercase">{table.type}</div>
+                    <div
+                      className="text-blue-600 underline cursor-pointer"
+                      onClick={() =>
+                        navigate(
+                          `/buildings/${buildingId}/floors/${floorId}/rooms/${roomId}/objects/${table._id}/complaints`
+                        )
+                      }
+                    >
+                      {table.name}
+                    </div>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDeleteObject(table._id)}
+                        className="mt-2 bg-red-500 text-white px-2 py-1 rounded text-sm"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )}
+                {chair && (
+                  <div className="border-t pt-2 mt-2">
+                    <div className="text-purple-600 font-bold uppercase">{chair.type}</div>
+                    <div
+                      className="text-blue-600 underline cursor-pointer"
+                      onClick={() =>
+                        navigate(
+                          `/buildings/${buildingId}/floors/${floorId}/rooms/${roomId}/objects/${chair._id}/complaints`
+                        )
+                      }
+                    >
+                      {chair.name}
+                    </div>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={() => handleDeleteObject(chair._id)}
+                        className="mt-2 bg-red-500 text-white px-2 py-1 rounded text-sm"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Navbar user={user} setUser={setUser} />
+
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Room Objects</h1>
+
+        {objects.length === 0 ? (
+          <p className="text-gray-600 mb-10">No objects found in this room.</p>
+        ) : (
+          <>
+            {renderGroup(grouped.board, "Boards", "grid-cols-1 sm:grid-cols-2 md:grid-cols-1")}
+            {renderGroup(grouped.projector, "Projectors", "grid-cols-1 sm:grid-cols-1")}
+            {renderGroup(grouped.ac, "ACs", "grid-cols-1 sm:grid-cols-2")}
+            {renderGroup(grouped.fan, "Fans", "grid-cols-1 sm:grid-cols-2")}
+            {renderGroup(tableChairPairs, "Table & Chair Pairs", "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12 gap-2", true)}
+          </>
         )}
 
         {user?.role === "admin" && (
           <form
             onSubmit={handleAddObject}
-            className="bg-white p-6 rounded-lg shadow space-y-4"
+            className="bg-white p-6 rounded-lg shadow space-y-4 mt-4"
           >
             <h2 className="text-xl font-semibold text-gray-700">Add New Object</h2>
             <input

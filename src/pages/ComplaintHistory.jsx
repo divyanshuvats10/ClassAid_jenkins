@@ -31,11 +31,24 @@ const ComplaintHistory = () => {
     )
       .then((res) => res.json())
       .then((data) => {
-        setComplaints(data.complaints);
+        const sorted = [...data.complaints].sort((a, b) => {
+          const getTime = (comp) =>
+            new Date(comp.status === "pending" ? comp.dateLogged : comp.dateResolved).getTime();
+  
+          // First: unresolved complaints (status === 'pending')
+          // Within each group: sorted by most recent
+          if (a.status === "pending" && b.status !== "pending") return -1;
+          if (a.status !== "pending" && b.status === "pending") return 1;
+  
+          return getTime(b) - getTime(a);
+        });
+  
+        setComplaints(sorted);
         setMeta(data.meta);
       })
       .catch((err) => console.error("Error fetching complaints:", err));
   };
+  
 
   const handleAddComplaint = (e) => {
     e.preventDefault();
