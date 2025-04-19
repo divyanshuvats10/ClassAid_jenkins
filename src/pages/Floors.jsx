@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const Floors = () => {
-  const { buildingId } = useParams(); // Building ID
+  const { buildingId } = useParams();
   const [user, setUser] = useState(null);
   const [floors, setFloors] = useState([]);
   const [newFloorNumber, setNewFloorNumber] = useState("");
@@ -57,7 +58,7 @@ const Floors = () => {
   };
 
   const handleDeleteFloor = async (floorId, e) => {
-    e.stopPropagation(); // Prevents clicking delete from triggering navigation
+    e.stopPropagation();
 
     try {
       const res = await fetch(`http://localhost:5000/buildings/${buildingId}/floors/${floorId}`, {
@@ -74,35 +75,58 @@ const Floors = () => {
   };
 
   return (
-    <div>
-      <h1>Floors in Building</h1>
-      <ul>
-        {floors.map((floor) => (
-          <li key={floor._id}>
-            <span 
-              style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-              onClick={() => navigate(`/buildings/${buildingId}/floors/${floor._id}/rooms`)}
-            >
-            Floor {floor.floorNumber}
-            </span>
-            {user?.role === "admin" && (
-              <button onClick={(e) => handleDeleteFloor(floor._id, e)}>Delete</button>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar user={user} setUser={setUser} />
 
-      {user?.role === "admin" && (
-        <div>
-          <input
-            type="number"
-            placeholder="New Floor Number"
-            value={newFloorNumber}
-            onChange={(e) => setNewFloorNumber(e.target.value)}
-          />
-          <button onClick={handleAddFloor}>Add Floor</button>
-        </div>
-      )}
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Floors in Building</h1>
+
+        <ul className="space-y-4 mb-8">
+          {floors.map((floor) => (
+            <li
+              key={floor._id}
+              className="bg-white p-4 rounded-lg shadow flex justify-between items-center"
+            >
+              <span
+                onClick={() =>
+                  navigate(`/buildings/${buildingId}/floors/${floor._id}/rooms`)
+                }
+                className="text-blue-600 font-medium hover:underline cursor-pointer text-lg"
+              >
+                Floor {floor.floorNumber}
+              </span>
+
+              {user?.role === "admin" && (
+                <button
+                  onClick={(e) => handleDeleteFloor(floor._id, e)}
+                  className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                >
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {user?.role === "admin" && (
+          <div className="bg-white p-6 rounded-lg shadow space-y-4">
+            <h2 className="text-xl font-semibold text-gray-700">Add New Floor</h2>
+            <input
+              type="number"
+              placeholder="New Floor Number"
+              value={newFloorNumber}
+              onChange={(e) => setNewFloorNumber(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              onClick={handleAddFloor}
+              className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition"
+            >
+              Add Floor
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

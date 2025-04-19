@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const Buildings = () => {
   const [user, setUser] = useState(null);
@@ -8,15 +9,14 @@ const Buildings = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Fetch user session data
     fetch("http://localhost:5000/dashboard", { credentials: "include" })
       .then((res) => res.json())
       .then((data) => {
         if (data.user) {
           setUser(data.user);
-          fetchBuildings(); // Fetch buildings if logged in
+          fetchBuildings();
         } else {
-          navigate("/login"); // Redirect if not logged in
+          navigate("/login");
         }
       })
       .catch((err) => console.error("Session fetch error:", err));
@@ -71,35 +71,59 @@ const Buildings = () => {
   };
 
   return (
-    <div>
-      <h1>Buildings</h1>
-      <ul>
-        {buildings.map((building) => (
-          <li key={building._id}>
-            <span 
-              style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-              onClick={() => navigate(`/buildings/${building._id}/floors`)}
-            >
-              {building.buildingName}
-            </span>
-            {user?.role === "admin" && (
-              <button onClick={() => handleDeleteBuilding(building._id)}>Delete</button>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar user={user} setUser={setUser} />
 
-      {user?.role === "admin" && (
-        <form onSubmit={handleAddBuilding}>
-          <input
-            type="text"
-            placeholder="New Building Name"
-            value={newBuildingName}
-            onChange={(e) => setNewBuildingName(e.target.value)}
-          />
-          <button type="submit">Add Building</button>
-        </form>
-      )}
+      <div className="max-w-4xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Buildings</h1>
+
+        <ul className="space-y-4 mb-8">
+          {buildings.map((building) => (
+            <li
+              key={building._id}
+              className="bg-white p-4 rounded-lg shadow flex justify-between items-center"
+            >
+              <span
+                onClick={() => navigate(`/buildings/${building._id}/floors`)}
+                className="text-blue-600 font-medium hover:underline cursor-pointer text-lg"
+              >
+                {building.buildingName}
+              </span>
+
+              {user?.role === "admin" && (
+                <button
+                  onClick={() => handleDeleteBuilding(building._id)}
+                  className="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition"
+                >
+                  Delete
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {user?.role === "admin" && (
+          <form
+            onSubmit={handleAddBuilding}
+            className="bg-white p-6 rounded-lg shadow space-y-4"
+          >
+            <h2 className="text-xl font-semibold text-gray-700">Add New Building</h2>
+            <input
+              type="text"
+              placeholder="New Building Name"
+              value={newBuildingName}
+              onChange={(e) => setNewBuildingName(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+            <button
+              type="submit"
+              className="bg-purple-600 text-white px-5 py-2 rounded-lg hover:bg-purple-700 transition"
+            >
+              Add Building
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 };

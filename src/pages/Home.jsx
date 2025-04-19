@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
 const Home = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Check session on page load
   useEffect(() => {
     fetch("http://localhost:5000/session", { credentials: "include" })
       .then((res) => res.json())
@@ -17,7 +17,6 @@ const Home = () => {
       .catch((err) => console.error("Session check failed:", err));
   }, []);
 
-  // Logout function
   const handleLogout = async () => {
     try {
       const response = await fetch("http://localhost:5000/logout", {
@@ -37,25 +36,38 @@ const Home = () => {
   };
 
   return (
-    <div>
-      {/* Navbar */}
-      <nav>
-        <h2>Complaint Management</h2>
-        <div>
-          {user ? (
-            <button onClick={handleLogout}>Logout</button>
-          ) : (
-            <>
-              <Link to="/register">Register</Link>
-              <Link to="/login">Login</Link>
-            </>
-          )}
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar user={user} setUser={setUser} />
 
-      {/* Welcome Message */}
-      <h1 className="text-red-500">Welcome to the Complaint Management System</h1>
-      {user && <h2>Hello, {user.name} ({user.role})</h2>}
+      <div className="max-w-3xl mx-auto text-center px-4 py-20">
+        <h1 className="text-4xl font-bold text-purple-700 mb-4">
+          Welcome to the ClassAid
+        </h1>
+
+        {user ? (
+          <h2 className="text-lg text-gray-700">
+            Hello, <span className="font-semibold">{user.name}</span> ({user.role})
+          </h2>
+        ) : (
+          <p className="text-gray-600">
+            Please{" "}
+            <span
+              className="text-blue-600 underline cursor-pointer"
+              onClick={() => navigate("/login")}
+            >
+              login
+            </span>{" "}
+            or{" "}
+            <span
+              className="text-blue-600 underline cursor-pointer"
+              onClick={() => navigate("/register")}
+            >
+              register
+            </span>{" "}
+            to get started.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
