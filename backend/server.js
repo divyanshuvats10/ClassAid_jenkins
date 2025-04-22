@@ -15,14 +15,14 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
 
 // MongoDB Connection
 mongoose
-  .connect("mongodb://127.0.0.1:27017/college-room", { useNewUrlParser: true, useUnifiedTopology: true })
+  .connect("mongodb://mongo:27017/classaid", { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("MongoDB Connection Error:", err));
 
